@@ -19,24 +19,31 @@ The project is divided into three main stages:
 To set up FaceMark on your local machine, follow these steps:
 
  1. **Clone the repository:**
+    
 	 ```bash
     git clone https://github.com/RGisanEclipse/FaceMark.git
     cd FaceMark
     ```
  2. **Set up the Back End Server:**
+    
 	 - Ensure you have Flask and other dependencies installed.
 	 - Run the Back End Server Script:
+
 	 ```bash
     python App.py
     ```
  3. **Set up the Front End Server:**
+    
 	 - Ensure you have Node.js installed.
 	 - Navigate to the client directory and install dependencies:
+
 	 ```bash
     cd client
     npm install
     ```
+  
     - Start the server:
+      
      ```bash
     npm run dev
     ```
