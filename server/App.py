@@ -14,13 +14,10 @@ app = Flask(__name__)
 CORS(app)
 nimgs = 100
 
-
 datetoday = date.today().strftime("%m_%d_%y")
 datetoday2 = date.today().strftime("%d-%B-%Y")
 
-
 face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
 
 if not os.path.isdir('Attendance'):
     os.makedirs('Attendance')
@@ -33,10 +30,8 @@ if f'Attendance-{datetoday}.csv' not in os.listdir('Attendance'):
         f.write('Name,Roll,Time')
 
 
-
 def totalreg():
     return len(os.listdir('static/faces'))
-
 
 
 def extract_faces(img):
@@ -48,11 +43,9 @@ def extract_faces(img):
         return []
 
 
-
 def identify_face(facearray):
     model = joblib.load('static/face_recognition_model.pkl')
     return model.predict(facearray)
-
 
 
 def train_model():
@@ -71,7 +64,6 @@ def train_model():
     joblib.dump(knn, 'static/face_recognition_model.pkl')
 
 
-
 def extract_attendance():
     df = pd.read_csv(f'Attendance/Attendance-{datetoday}.csv')
     names = df['Name']
@@ -80,6 +72,7 @@ def extract_attendance():
     l = len(df)
     return names, rolls, times, l
 
+
 def extract_attendance_custom(current_date):
     df = pd.read_csv(f'Attendance/Attendance-{current_date}.csv')
     names = df['Name']
@@ -87,6 +80,7 @@ def extract_attendance_custom(current_date):
     times = df['Time']
     l = len(df)
     return names, rolls, times, l
+
 
 # Add Attendance of a specific user
 def add_attendance(name):
@@ -99,11 +93,11 @@ def add_attendance(name):
         with open(f'Attendance/Attendance-{datetoday}.csv', 'a') as f:
             f.write(f'\n{username},{userid},{current_time}')
 
+
 def get_all_attendance():
     attendanceList = os.listdir('Attendance')
 
     return attendanceList
-
 
 
 def getallusers():
@@ -120,7 +114,6 @@ def getallusers():
     return userlist, names, rolls, l
 
 
-
 def deletefolder(duser):
     pics = os.listdir(duser)
     for i in pics:
@@ -128,15 +121,12 @@ def deletefolder(duser):
     os.rmdir(duser)
 
 
-
-
-
 @app.route('/')
 def home():
     return jsonify({"message": "working"})
 
-## get custom attendance
-@app.route('/custom_attendance',methods = ['POST'])
+
+@app.route('/custom_attendance', methods=['POST'])
 def custom_attendance():
     data = request.json
     current_date = data.get('custom_date')
@@ -147,7 +137,7 @@ def custom_attendance():
 
     return jsonify({'success': True, 'names': names, 'rolls': rolls, 'times': times, 'l': l})
 
-## get attendance
+
 @app.route('/attendance')
 def attendance():
     names, rolls, times, l = extract_attendance()
@@ -157,14 +147,14 @@ def attendance():
 
     return jsonify({'success': True, 'names': names, 'rolls': rolls, 'times': times, 'l': l})
 
+
 @app.route('/getAllAttendance')
 def getAllAttendance():
     attendance_list = get_all_attendance()
 
-    return jsonify({'success': True, 'Attendance':attendance_list});
+    return jsonify({'success': True, 'Attendance': attendance_list});
 
 
-## List users page
 @app.route('/listusers')
 def listusers():
     userlist, names, rolls, l = getallusers()
@@ -181,14 +171,12 @@ def listusers():
     return jsonify(data)
 
 
-## Delete functionality
 @app.route('/deleteuser', methods=['POST'])
 def deleteuser():
     data = request.json
     duser = data.get('user')
     deletefolder('static/faces/' + duser)
 
-    ##deleting trained file
     if os.listdir('static/faces/') == []:
         os.remove('static/face_recognition_model.pkl')
 
@@ -211,77 +199,53 @@ def deleteuser():
     return jsonify(data)
 
 
-# Our main Face Recognition functionality.
-# This function will run when we click on Take Attendance Button.
 @app.route('/start', methods=['GET'])
 def start():
-    # Extract attendance details
     names, rolls, times, l = extract_attendance()
 
-    # Check if the face recognition model is trained
     if 'face_recognition_model.pkl' not in os.listdir('static'):
         return jsonify({"success": False, "message": "There is no trained model"})
 
-    # Load the face recognition model
     model = joblib.load('static/face_recognition_model.pkl')
 
-    # Start capturing video
     cap = cv2.VideoCapture(0)
 
-    # Initialize a list to store the present users
     present_users = []
 
-    # Start time
     start_time = time.time()
 
     while True:
-        # Capture frame-by-frame
+
         ret, frame = cap.read()
         if not ret:
             break
 
-        # Detect faces in the frame
         faces = extract_faces(frame)
 
-        # Process each detected face
         for (x, y, w, h) in faces:
-            # Extract the face region
-            face_region = frame[y:y+h, x:x+w]
 
-            # Resize the face region to match the model input size
+            face_region = frame[y:y + h, x:x + w]
+
             resized_face = cv2.resize(face_region, (50, 50))
 
-            # Flatten the face array
             face_array = resized_face.ravel().reshape(1, -1)
 
-            # Predict the identity of the face using the model
-            prediction = model.predict(face_array)[0]  # Extract the first element of the prediction array
+            prediction = model.predict(face_array)[0]
 
-            # Convert the prediction to a string
             prediction_str = str(prediction)
 
-            # Get the name and roll number of the predicted user
             name, roll = prediction_str.split('_')
 
-            # Get the current time
             current_time = datetime.now().strftime("%H:%M:%S")
 
-            # Check if the user is already present
             if int(roll) not in rolls:
-                # Add the user to the present users list
                 present_users.append({"name": name, "roll": int(roll), "time": current_time})
 
-                # Update the attendance record
                 add_attendance(prediction)
 
-                # Update the attendance details
                 names, rolls, times, l = extract_attendance()
-
-        # Check if 5 seconds have passed
         if time.time() - start_time >= 5:
             break
-
-    # Release the video capture device and close the window
     cap.release()
     cv2.destroyAllWindows()
 
@@ -289,9 +253,6 @@ def start():
     return jsonify({"success": True, "present_users": present_users})
 
 
-
-# A function to add a new user.
-# This function will run when we add a new user.
 @app.route('/add', methods=['POST'])
 def add():
     data = request.json
@@ -335,10 +296,9 @@ def add():
     rolls = rolls.tolist()
     times = times.tolist()
 
-    return jsonify({'success': True, 'names': names, 'rolls': rolls, 'times': times, 'l': l, 'image_paths': image_paths})
+    return jsonify(
+        {'success': True, 'names': names, 'rolls': rolls, 'times': times, 'l': l, 'image_paths': image_paths})
 
 
-
-# Our main function which runs the Flask App
 if __name__ == '__main__':
     app.run(debug=True)
