@@ -1,4 +1,4 @@
-# FaceMark: Camera-Based Attendance System
+# FaceMark
 
 FaceMark is a camera-based attendance system leveraging facial recognition technology to automate and enhance the accuracy of attendance tracking in educational institutions, workplaces, and event organizations. The system utilizes a K-Nearest Neighbors (KNN) model for face detection and recognition, ensuring efficient and fraud-resistant attendance management.
 
