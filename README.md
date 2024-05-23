@@ -15,6 +15,13 @@ The project is divided into three main stages:
 2. **Backend Server Creation and Script Optimization:** Setting up a server to handle client requests and optimize the facial recognition script.
 3. **Frontend Server Development:** Developing a user-friendly web interface for administrators and end-users to interact with the system.
 
+## Technologies Used
+- **Python:** Core programming language for developing the backend and facial recognition algorithms.
+- **Flask:** Micro web framework used for creating the backend server.
+- **OpenCV:** Library used for real-time computer vision tasks.
+- **Joblib:** Used for serializing Python objects, particularly for saving and loading models.
+- **React.js:** JavaScript library for building the user interface.
+
 ## Installation
 To set up FaceMark on your local machine, follow these steps:
 
